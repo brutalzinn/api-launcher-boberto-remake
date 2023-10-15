@@ -4,13 +4,10 @@ CLIENT = "CLIENT"
 }
 
 export enum MinecraftFileType {
-"mods",
-"data",
-"saves",
-"config",
-"natives",
-"shaderpacks",
-"other"
+    MOD = "MOD",
+    LIBRARY = "LIBRARY",
+    VERSIONCUSTOM = "VERSIONCUSTOM",
+    FILE = "FILE"
 }
   
 export interface ManifestEntry {

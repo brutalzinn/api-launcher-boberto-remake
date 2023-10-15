@@ -10,7 +10,7 @@ import { CurrentUrl } from 'src/decorators/url.decorator';
 import { ManifestService } from 'src/services/manifest/manifest.service';
 import { MinecraftEnvironment } from 'src/services/manifest/models/manifest.model';
 import { Modpack } from './entities/modpack.entity';
-import { convertToMetadata } from 'src/helpers/metadata.helper';
+import { IMedatada, convertToMetadata } from 'src/helpers/metadata.helper';
 
 @Controller('modpack')
 export class ModpackController {
@@ -24,15 +24,33 @@ export class ModpackController {
   @Get()
   async findAll(@CurrentUrl() url: string) {
     const modpacks =  await this.modpackService.findAll();
-    const modpacksDto = modpacks.map(item => new Modpack({
+    const modpacksDto = modpacks.map(function(item) {
+    let servers = []
+    for (var i = 0; i < item.servers.length; i++){
+      const ipAddress = item.servers[i].ip
+      const port = item.servers[i].port
+      const name = item.servers[i].name
+      const alias = item.servers[i].alias
+      servers.push({key: "server." + i + ".ip", value: ipAddress })
+      servers.push({key: "server." + i + ".port", value: port })
+      servers.push({key: "server." + i + ".alias", value: alias })
+      servers.push({key: "server." + i + ".name", value: name })
+    }
+    let modpack = new Modpack({
       id: item.id,
-      isModded: item.isModded,
       gameVersion: item.gameVersion,
+      isDefault: false, ///TODO: ADD LATER
       name: item.name,
       metadata: convertToMetadata([
-        {key: "modpack.manifest", value:  `${url}/modpacks/${item.id}/manifest.json`}
-      ])
-    }))
+        {key: "modpack.manifest", value:  `${url}/modpacks/${item.id}/manifest.json`},
+        ...item.metadatas,
+        ...servers
+      ],
+      )
+    })
+    return modpack
+
+  })
 
     return modpacksDto
   }
@@ -66,11 +84,10 @@ export class ModpackController {
     const originalZipPath = join(process.cwd(), file.path);
     const outputZipPath =  join(process.cwd(), 'public', 'modpacks', id);
     await createDir(outputZipPath)
-
     await this.zipService.unzip(originalZipPath, outputZipPath)
-    await removeFile(originalZipPath)//
     const modpackUrl = `${url}/modpacks/${id}`
     await this.manifestService.createManifest(outputZipPath, outputZipPath, MinecraftEnvironment.CLIENT, modpackUrl)
+    await removeFile(originalZipPath)
   }
 
 

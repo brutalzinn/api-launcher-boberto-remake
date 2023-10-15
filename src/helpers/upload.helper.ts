@@ -27,18 +27,34 @@ export const uploadZipToStorage = {
   },
 };
 
+export const uploadLauncherToStorage = {
+  storage: diskStorage({
+    destination: "./public/launcher",
+    filename: (req, file, cb) => {
+      cb(null, file.originalname);
+    },
+  })
+};
 
-export const removeFile = async (fullFilePath: string): Promise<void> => {
+
+export const removeFile = async (filePath: string): Promise<void> => {
   try {
-   await fs.promises.unlink(fullFilePath);
+    if(!fileExists(filePath)){
+      return
+    }
+   await fs.promises.unlink(filePath);
   } catch (err) {
     console.error(err);
   }
 };
 
+
 export const moveFileTo = (originFile: string, newFile: string): void => {
   try {
-    fs.cpSync(originFile, newFile)   
+    if(!fileExists(originFile)){
+      return
+    }
+    fs.cpSync(originFile, newFile, {recursive: true})   
   } catch (err) {
     console.error(err);
   }
@@ -46,8 +62,22 @@ export const moveFileTo = (originFile: string, newFile: string): void => {
 
 export const createDir = async (path: string): Promise<void> => {
   try {
-    fs.promises.mkdir(path, {recursive: true})   
+    await fs.promises.mkdir(path, {recursive: true})   
   } catch (err) {
     console.error(err);
   }
 };
+
+export const clearDir = async (path: string): Promise<void> => {
+  try {
+    await fs.promises.rmdir(path, {recursive: true})   
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const fileExists = (filePath: string ) : boolean => {
+  const exists = fs.existsSync(filePath)
+   return exists
+}
+

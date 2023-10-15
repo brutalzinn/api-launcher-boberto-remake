@@ -9,8 +9,11 @@ import { promisify } from 'util';
 export class ZipService {
     private readonly pipelineAsync = promisify(require('stream').pipeline);
 
-  async unzip(zipFilePath: string, outputDirectory: string): Promise<void> {
-    fs.createReadStream(zipFilePath)
-    .pipe(unzipper.Extract({ path: outputDirectory }));
+   async unzip(zipFilePath: string, outputDirectory: string) : Promise<void> {
+
+  await fs.createReadStream(zipFilePath)
+  .pipe(unzipper.Extract({ path: outputDirectory }))
+  .on('entry', entry => entry.autodrain())
+  .promise()
   }
 }

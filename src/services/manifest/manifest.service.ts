@@ -8,7 +8,7 @@ import { MinecraftEnvironment, MinecraftFileType } from './models/manifest.model
 export class ManifestService {
     async createManifest(inputDir: string, outputDirectory: string, environment : MinecraftEnvironment, hostUrl: string): Promise<void> {
         const manifest = [];
-        const files = this.getAllFilesInFolder(inputDir)
+        const files = this.getAllFilesInFolder(inputDir, ["manifest.json"])
         for (const filePath of files) {
           const relativePath = path.relative(outputDirectory, filePath).replaceAll(path.sep, '/');
           const fileName = path.basename(filePath)
@@ -23,7 +23,7 @@ export class ManifestService {
             name: fileName,
             path: relativePath,
             size: stats.size,
-            checksum,
+            sha1: checksum,
             url,
             environment,
             type: fileType,
@@ -58,28 +58,26 @@ export class ManifestService {
       private getFileType(filePath: string): MinecraftFileType {
        const fileType: string = filePath.split("/")[0];
         switch(fileType){
-            case "mods": 
-                return MinecraftFileType.mods;
-            case "saves":
-                return MinecraftFileType.saves;
-            case "config":
-                return MinecraftFileType.config;
-            case "natives":
-                return MinecraftFileType.natives;
-            case "shaderpacks":
-                return MinecraftFileType.shaderpacks;
+            case "libraries": 
+                return MinecraftFileType.LIBRARY;
+            case "mods":
+                return MinecraftFileType.MOD;
+            case "versions":
+                return MinecraftFileType.VERSIONCUSTOM;
             default: 
-                return MinecraftFileType.other;
+                return MinecraftFileType.FILE;
 
         }
       }
 
-      getAllFilesInFolder(folderPath: string): string[] {
+      getAllFilesInFolder(folderPath: string, toIgnore: string[]): string[] {
         const files: string[] = [];
-      
         function traverseDirectory(currentPath: string): void {
           const items = fs.readdirSync(currentPath);
           items.forEach((item) => {
+            if(toIgnore.includes(item)){
+              return
+            }
             const itemPath = path.join(currentPath, item);
             const stat = fs.statSync(itemPath);
             if (stat.isDirectory()) {

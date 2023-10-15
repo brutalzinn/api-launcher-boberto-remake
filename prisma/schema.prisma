@@ -8,48 +8,46 @@ generator client {
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
-  
 }
 
 model ModPack {
-  id                String              @id  @default(uuid())
-  name              String 
-  gameVersion       String
-  isModded          Boolean
-  createAt          DateTime         @default(now())
-  updateAt          DateTime         @updatedAt
-  servers Server[]
-  metadatas ModpackMetadata[]
+  id          String            @id @default(uuid())
+  name        String
+  gameVersion String
+  createAt    DateTime          @default(now())
+  updateAt    DateTime          @updatedAt
+  servers     Server[]
+  metadatas   ModpackMetadata[]
 }
 
 model ModpackMetadata {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   modpackId String
-  key     String
+  key       String
   value     String
   modpack   ModPack  @relation(fields: [modpackId], references: [id])
   createAt  DateTime @default(now())
   updateAt  DateTime @updatedAt
+
   @@unique([modpackId, key], name: "modpack_id_key")
 }
 
 model Server {
-  id                String              @id  @default(uuid())
-  name              String
-  ip String
-  port Int
-  version           String
-  gameVersion         String
-  serverId  String
-  alias             String
-  createAt          DateTime         @default(now())
-  updateAt          DateTime         @updatedAt
-  server   ModPack @relation(fields: [serverId], references: [id])
+  id          String   @id @default(uuid())
+  name        String
+  ip          String
+  port        Int
+  gameVersion String
+  modpackId   String
+  alias       String
+  createAt    DateTime @default(now())
+  updateAt    DateTime @updatedAt
+  modpack     ModPack  @relation(fields: [modpackId], references: [id])
 }
 
 model LauncherVersion {
-  id                Int              @id @default(autoincrement())
-  version           String
-  createAt          DateTime         @default(now())
-  updateAt          DateTime         @updatedAt
+  id       Int      @id @default(autoincrement())
+  version  String
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt
 }

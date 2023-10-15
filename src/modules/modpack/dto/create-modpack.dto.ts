@@ -1,6 +1,13 @@
 export class CreateModpackDto {
     name: string
     gameVersion: string
-    isModded: boolean
     manifestUrl?: string
+    verify: boolean
+    loader?: CreateModpackModdedDto
+}
+
+export class CreateModpackModdedDto {
+    type?: string
+    build?: string
+    enable: boolean
 }

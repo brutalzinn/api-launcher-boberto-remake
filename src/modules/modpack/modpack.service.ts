@@ -8,18 +8,40 @@ import { ModPack } from '@prisma/client';
 export class ModpackService {
   constructor(private prisma: PrismaService) {}
 
+//   export class CreateModpackModdedDto {
+//     loader: string
+//     forgeVersion: string
+//     fabricVersion: string
+// }
+
+
   async create(createModpackDto: CreateModpackDto) : Promise<boolean> {
     await this.prisma.modPack.create({
       data: {
         name: createModpackDto.name,
-        isModded: createModpackDto.isModded,
         gameVersion: createModpackDto.gameVersion,
         metadatas: {
           createMany: {
             data : [
               {
-                key : "manifest_url",
-                value: createModpackDto.manifestUrl
+                key : "modpack.thumb",
+                value: ""
+              },
+              {
+                key : "modpack.loader.build",
+                value: createModpackDto?.loader?.build ?? ""
+              },
+              {
+                key : "modpack.loader.type",
+                value: createModpackDto?.loader?.type ?? "normal"
+              },
+              {
+                key : "modpack.loader.enable",
+                value: createModpackDto?.loader?.enable ? "true" : "false"
+              },
+              {
+                key : "modpack.verify",
+                value: createModpackDto?.verify ? "true" : "false"
               }
             ]
           }
@@ -30,8 +52,13 @@ export class ModpackService {
     return true
   }
 
-  async findAll() : Promise<Array<ModPack>> {
-    let modpacks = await this.prisma.modPack.findMany()
+  async findAll()  {
+    let modpacks = await this.prisma.modPack.findMany({
+      include: {
+        metadatas: true,
+        servers: true
+      }
+    })
     return modpacks
   }
 
@@ -53,7 +80,6 @@ export class ModpackService {
       data: {
         name: updateModpackDto.name,
         gameVersion: updateModpackDto.gameVersion,
-        isModded : updateModpackDto.isModded
       }
     })
 

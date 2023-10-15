@@ -14,10 +14,9 @@ export class ServerService {
         name: createServerDto.name,
         ip: createServerDto.ip,
         port: createServerDto.port,
-        version: createServerDto.version,
         alias: createServerDto.alias,
         gameVersion: createServerDto.gameVersion,
-        server: {
+        modpack: {
           connect: {
             id: createServerDto.modpackId
           }
@@ -42,7 +41,7 @@ export class ServerService {
   }
 
   async update(id: string, updateServerDto: UpdateServerDto) : Promise<boolean>{
-    let server = await this.prisma.server.update({
+    await this.prisma.server.update({
       where: {
         id: id
       },
@@ -52,7 +51,6 @@ export class ServerService {
         port: updateServerDto.port,
         alias: updateServerDto.alias,
         gameVersion: updateServerDto.gameVersion,
-        version : updateServerDto.version
       }
     })
     return true
