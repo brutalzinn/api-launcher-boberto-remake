@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Patch, Delete, UseInterceptors, UploadedFile, Request, HttpException, HttpStatus, Req, HostParam } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, Delete, UseInterceptors, UploadedFile, Request, HttpException, HttpStatus, Req, HostParam, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { join } from 'path';
 import { removeFile, moveFileTo, uploadZipToStorage, createDir } from 'src/helpers/upload.helper';
@@ -11,8 +11,10 @@ import { ManifestService } from 'src/services/manifest/manifest.service';
 import { MinecraftEnvironment } from 'src/services/manifest/models/manifest.model';
 import { Modpack } from './entities/modpack.entity';
 import { IMedatada, convertToMetadata } from 'src/helpers/metadata.helper';
+import { ApikeyGuard } from 'src/guards/apikey/apikey.guard';
 
 @Controller('modpack')
+@UseGuards(ApikeyGuard)
 export class ModpackController {
   constructor(private readonly modpackService: ModpackService, private zipService : ZipService, private manifestService : ManifestService) {}
 
