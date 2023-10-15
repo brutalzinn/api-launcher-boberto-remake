@@ -9,6 +9,8 @@ import { ZipService } from 'src/services/zip/zip.service';
 import { CurrentUrl } from 'src/decorators/url.decorator';
 import { ManifestService } from 'src/services/manifest/manifest.service';
 import { MinecraftEnvironment } from 'src/services/manifest/models/manifest.model';
+import { Modpack } from './entities/modpack.entity';
+import { convertToMetadata } from 'src/helpers/metadata.helper';
 
 @Controller('modpack')
 export class ModpackController {
@@ -20,8 +22,19 @@ export class ModpackController {
   }
 
   @Get()
-  async findAll() {
-    return await this.modpackService.findAll();
+  async findAll(@CurrentUrl() url: string) {
+    const modpacks =  await this.modpackService.findAll();
+    const modpacksDto = modpacks.map(item => new Modpack({
+      id: item.id,
+      isModded: item.isModded,
+      gameVersion: item.gameVersion,
+      name: item.name,
+      metadata: convertToMetadata([
+        {key: "modpack.manifest", value:  `${url}/modpacks/${item.id}/manifest.json`}
+      ])
+    }))
+
+    return modpacksDto
   }
 
   @Get(':id')
@@ -57,9 +70,7 @@ export class ModpackController {
     await this.zipService.unzip(originalZipPath, outputZipPath)
     await removeFile(originalZipPath)//
     const modpackUrl = `${url}/modpacks/${id}`
-
     await this.manifestService.createManifest(outputZipPath, outputZipPath, MinecraftEnvironment.CLIENT, modpackUrl)
-
   }
 
 

@@ -19,6 +19,18 @@ model ModPack {
   createAt          DateTime         @default(now())
   updateAt          DateTime         @updatedAt
   servers Server[]
+  metadatas ModpackMetadata[]
+}
+
+model ModpackMetadata {
+  id        Int      @id @default(autoincrement())
+  modpackId String
+  key     String
+  value     String
+  modpack   ModPack  @relation(fields: [modpackId], references: [id])
+  createAt  DateTime @default(now())
+  updateAt  DateTime @updatedAt
+  @@unique([modpackId, key], name: "modpack_id_key")
 }
 
 model Server {

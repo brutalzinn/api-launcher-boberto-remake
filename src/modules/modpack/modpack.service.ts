@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateModpackDto } from './dto/create-modpack.dto';
 import { UpdateModpackDto } from './dto/update-modpack.dto';
 import { PrismaService } from 'src/services/prisma/prisma.service';
+import { ModPack } from '@prisma/client';
 
 @Injectable()
 export class ModpackService {
@@ -13,13 +14,23 @@ export class ModpackService {
         name: createModpackDto.name,
         isModded: createModpackDto.isModded,
         gameVersion: createModpackDto.gameVersion,
-      }
+        metadatas: {
+          createMany: {
+            data : [
+              {
+                key : "manifest_url",
+                value: createModpackDto.manifestUrl
+              }
+            ]
+          }
+        }
+      },
     })
 
     return true
   }
 
-  async findAll() {
+  async findAll() : Promise<Array<ModPack>> {
     let modpacks = await this.prisma.modPack.findMany()
     return modpacks
   }
@@ -42,7 +53,7 @@ export class ModpackService {
       data: {
         name: updateModpackDto.name,
         gameVersion: updateModpackDto.gameVersion,
-        isModded : updateModpackDto.isModded,
+        isModded : updateModpackDto.isModded
       }
     })
 
