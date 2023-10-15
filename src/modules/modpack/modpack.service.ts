@@ -12,7 +12,7 @@ export class ModpackService {
       data: {
         name: createModpackDto.name,
         isModded: createModpackDto.isModded,
-        gameVersion: createModpackDto.gameVersion
+        gameVersion: createModpackDto.gameVersion,
       }
     })
 
@@ -37,12 +37,12 @@ export class ModpackService {
   async update(id: string, updateModpackDto: UpdateModpackDto) : Promise<boolean> {
      await this.prisma.modPack.update({
       where: {
-        id
+        id: id
       },
       data: {
         name: updateModpackDto.name,
         gameVersion: updateModpackDto.gameVersion,
-        isModded : updateModpackDto.isModded
+        isModded : updateModpackDto.isModded,
       }
     })
 

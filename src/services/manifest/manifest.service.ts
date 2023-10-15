@@ -8,14 +8,17 @@ import { MinecraftEnvironment, MinecraftFileType } from './models/manifest.model
 export class ManifestService {
     async createManifest(inputDir: string, outputDirectory: string, environment : MinecraftEnvironment, hostUrl: string): Promise<void> {
         const manifest = [];
-        const files = this.getAllFilesInFolder(inputDir, ["manifest.json"])
+        const files = this.getAllFilesInFolder(inputDir)
         for (const filePath of files) {
-          const relativePath = path.relative(outputDirectory, filePath).replaceAll('\\', '/');
+          const relativePath = path.relative(outputDirectory, filePath).replaceAll(path.sep, '/');
           const fileName = path.basename(filePath)
           const stats = fs.statSync(filePath);
+          if (stats.isDirectory()) {
+            continue
+          }
           const checksum = await this.generateSHA1ChecksumForFile(filePath);
-          const url = `${hostUrl}/${environment}/${relativePath}`; // Update with your file storage path
-          const fileType = this.getFileType(path.extname(filePath).toLowerCase());
+          const url = `${hostUrl}/${relativePath}`; // Update with your file storage path
+          const fileType = this.getFileType(relativePath);
           const manifestEntry = {
             name: fileName,
             path: relativePath,
@@ -52,9 +55,8 @@ export class ManifestService {
         });
       }
     
-      private getFileType(fileType: string): MinecraftFileType {
-       // const fileType: string = filePath.split(path.sep)[0];
-
+      private getFileType(filePath: string): MinecraftFileType {
+       const fileType: string = filePath.split("/")[0];
         switch(fileType){
             case "mods": 
                 return MinecraftFileType.mods;
@@ -67,20 +69,17 @@ export class ManifestService {
             case "shaderpacks":
                 return MinecraftFileType.shaderpacks;
             default: 
-            return MinecraftFileType.other;
+                return MinecraftFileType.other;
 
         }
       }
 
-      getAllFilesInFolder(folderPath: string, toIgnore?: string[]): string[] {
+      getAllFilesInFolder(folderPath: string): string[] {
         const files: string[] = [];
       
         function traverseDirectory(currentPath: string): void {
           const items = fs.readdirSync(currentPath);
           items.forEach((item) => {
-            if(toIgnore && toIgnore.includes(item)){
-              return
-            }
             const itemPath = path.join(currentPath, item);
             const stat = fs.statSync(itemPath);
             if (stat.isDirectory()) {

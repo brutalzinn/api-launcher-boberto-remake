@@ -14,11 +14,11 @@ const validMimeTypes: validMimeType[] = [
 
 export const uploadZipToStorage = {
   storage: diskStorage({
-    destination: './uploads',
+    destination: "./public",
     filename: (req, file, cb) => {
-      const fileExtension: string = path.extname(file.originalname);
-      const fileName: string = file.originalname + fileExtension;
-      cb(null, fileName);
+      // const fileExtension: string = path.extname(file.originalname);
+      // const fileName: string = file.filename + fileExtension;//
+      cb(null, file.originalname);
     },
   }),
   fileFilter: (req, file, cb) => {
@@ -28,9 +28,9 @@ export const uploadZipToStorage = {
 };
 
 
-export const removeFile = (fullFilePath: string): void => {
+export const removeFile = async (fullFilePath: string): Promise<void> => {
   try {
-    fs.unlinkSync(fullFilePath);
+   await fs.promises.unlink(fullFilePath);
   } catch (err) {
     console.error(err);
   }
@@ -39,6 +39,14 @@ export const removeFile = (fullFilePath: string): void => {
 export const moveFileTo = (originFile: string, newFile: string): void => {
   try {
     fs.cpSync(originFile, newFile)   
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const createDir = async (path: string): Promise<void> => {
+  try {
+    fs.promises.mkdir(path, {recursive: true})   
   } catch (err) {
     console.error(err);
   }

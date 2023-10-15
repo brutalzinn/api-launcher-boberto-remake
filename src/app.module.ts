@@ -7,9 +7,14 @@ import { ServerService } from "./modules/server/server.service";
 import { ManifestService } from "./services/manifest/manifest.service";
 import { PrismaService } from "./services/prisma/prisma.service";
 import { ZipService } from "./services/zip/zip.service";
+import { ServeStaticModule } from "@nestjs/serve-static";
+import { join } from 'path';
 
 @Module({
-  imports: [ModpackModule, LauncherModule, ServerModule],
+  imports: [ModpackModule, LauncherModule, ServerModule, 
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+    }),],
   controllers: [],
   providers: [PrismaService, ManifestService, ZipService, ServerService, ModpackService],
 })

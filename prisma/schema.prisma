@@ -6,13 +6,13 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "mysql"
   url      = env("DATABASE_URL")
   
 }
 
 model ModPack {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id                String              @id  @default(uuid())
   name              String 
   gameVersion       String
   isModded          Boolean
@@ -22,21 +22,21 @@ model ModPack {
 }
 
 model Server {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id                String              @id  @default(uuid())
   name              String
   ip String
   port Int
   version           String
   gameVersion         String
+  serverId  String
   alias             String
-  modpackId String @db.ObjectId
   createAt          DateTime         @default(now())
   updateAt          DateTime         @updatedAt
-  server   ModPack @relation(fields: [modpackId], references: [id])
+  server   ModPack @relation(fields: [serverId], references: [id])
 }
 
 model LauncherVersion {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id                Int              @id @default(autoincrement())
   version           String
   createAt          DateTime         @default(now())
   updateAt          DateTime         @updatedAt

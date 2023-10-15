@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Get, Param, Patch, Delete, UseInterceptors, UploadedFile, Request, HttpException, HttpStatus, Req, HostParam } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { join } from 'path';
-import { removeFile, moveFileTo, uploadZipToStorage } from 'src/helpers/upload.helper';
+import { removeFile, moveFileTo, uploadZipToStorage, createDir } from 'src/helpers/upload.helper';
 import { CreateModpackDto } from './dto/create-modpack.dto';
 import { UpdateModpackDto } from './dto/update-modpack.dto';
 import { ModpackService } from './modpack.service';
@@ -51,16 +51,15 @@ export class ModpackController {
       throw new HttpException("file needs be zip or application/zip", HttpStatus.BAD_REQUEST)
     }
     const originalZipPath = join(process.cwd(), file.path);
-    const finalUploadZipPath = join(process.cwd(), 'uploads', 'modpacks', id, file.originalname);
-    const finalUnzipDir =  join(process.cwd(), 'uploads', 'modpacks', id);
-   
-    moveFileTo(originalZipPath, finalUploadZipPath)
-    removeFile(originalZipPath)
+    const outputZipPath =  join(process.cwd(), 'public', 'modpacks', id);
+    await createDir(outputZipPath)
 
-    await this.zipService.unzip(finalUploadZipPath, finalUnzipDir)
-    removeFile(finalUploadZipPath)
-    const modpackUrl = `${url}/${id}`
-    await this.manifestService.createManifest(finalUnzipDir, finalUnzipDir, MinecraftEnvironment.CLIENT, modpackUrl)
+    await this.zipService.unzip(originalZipPath, outputZipPath)
+    await removeFile(originalZipPath)//
+    const modpackUrl = `${url}/modpacks/${id}`
+
+    await this.manifestService.createManifest(outputZipPath, outputZipPath, MinecraftEnvironment.CLIENT, modpackUrl)
+
   }
 
 
