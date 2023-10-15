@@ -29,7 +29,6 @@ model ModpackMetadata {
   modpack   ModPack  @relation(fields: [modpackId], references: [id])
   createAt  DateTime @default(now())
   updateAt  DateTime @updatedAt
-
   @@unique([modpackId, key], name: "modpack_id_key")
 }
 
