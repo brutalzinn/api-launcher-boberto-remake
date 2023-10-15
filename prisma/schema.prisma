@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+  
+}
+
+model ModPack {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name              String 
+  gameVersion       String
+  isModded          Boolean
+  createAt          DateTime         @default(now())
+  updateAt          DateTime         @updatedAt
+  servers Server[]
+}
+
+model Server {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  ip String
+  port Int
+  version           String
+  gameVersion         String
+  alias             String
+  modpackId String @db.ObjectId
+  createAt          DateTime         @default(now())
+  updateAt          DateTime         @updatedAt
+  server   ModPack @relation(fields: [modpackId], references: [id])
+}
+
+model LauncherVersion {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  version           String
+  createAt          DateTime         @default(now())
+  updateAt          DateTime         @updatedAt
+}
