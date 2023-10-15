@@ -14,10 +14,9 @@ import { IMedatada, convertToMetadata } from 'src/helpers/metadata.helper';
 import { ApikeyGuard } from 'src/guards/apikey/apikey.guard';
 
 @Controller('modpack')
-@UseGuards(ApikeyGuard)
 export class ModpackController {
   constructor(private readonly modpackService: ModpackService, private zipService : ZipService, private manifestService : ManifestService) {}
-
+  @UseGuards(ApikeyGuard)
   @Post()
   async create(@Body() createModpackDto: CreateModpackDto) {
     return await this.modpackService.create(createModpackDto);
@@ -56,23 +55,25 @@ export class ModpackController {
 
     return modpacksDto
   }
-
+  @UseGuards(ApikeyGuard)
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.modpackService.findOne(id);
   }
 
+  @UseGuards(ApikeyGuard)
   @Patch(':id')
- async update(@Param('id') id: string, @Body() updateModpackDto: UpdateModpackDto) {
+  async update(@Param('id') id: string, @Body() updateModpackDto: UpdateModpackDto) {
     return await this.modpackService.update(id, updateModpackDto);
   }
 
+  @UseGuards(ApikeyGuard)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     return this.modpackService.remove(id);
   }
 
-
+  @UseGuards(ApikeyGuard)
   @Post(':id/upload')
   @UseInterceptors(FileInterceptor('file', uploadZipToStorage))
   async uploadImage(
