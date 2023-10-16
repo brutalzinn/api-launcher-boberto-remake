@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Get, Param, Patch, Delete, UseInterceptors, UploadedFile, Request, HttpException, HttpStatus, Req, HostParam, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { join } from 'path';
-import { removeFile, moveFileTo, uploadZipToStorage, createDir } from 'src/helpers/upload.helper';
+import { removeFile, moveFileTo, uploadZipToStorage, createDir, clearDir } from 'src/helpers/upload.helper';
 import { CreateModpackDto } from './dto/create-modpack.dto';
 import { UpdateModpackDto } from './dto/update-modpack.dto';
 import { ModpackService } from './modpack.service';
@@ -25,9 +25,11 @@ export class ModpackController {
   @Get()
   async findAll(@CurrentUrl() url: string) {
     const modpacks =  await this.modpackService.findAll();
+    ///TODO: do this in a more clear way.
     const modpacksDto = modpacks.map(function(item) {
     let servers = []
     for (var i = 0; i < item.servers.length; i++){
+      const id = item.servers[i].id
       const ipAddress = item.servers[i].ip
       const port = item.servers[i].port
       const name = item.servers[i].name
@@ -36,16 +38,17 @@ export class ModpackController {
       servers.push({key: "server." + i + ".port", value: port })
       servers.push({key: "server." + i + ".alias", value: alias })
       servers.push({key: "server." + i + ".name", value: name })
+      servers.push({key: "server." + i + ".id", value: id })
+
     }
     let modpack = new Modpack({
       id: item.id,
       gameVersion: item.gameVersion,
-      isDefault: false, ///TODO: ADD LATER
       name: item.name,
       metadata: convertToMetadata([
         {key: "modpack.manifest", value:  `${url}/modpacks/${item.id}/manifest.json`},
         ...item.metadatas,
-        ...servers
+      //  ...servers
       ],
       )
     })
@@ -70,11 +73,21 @@ export class ModpackController {
   @UseGuards(ApikeyGuard)
   @Delete(':id')
   async remove(@Param('id') id: string) {
+    const modpackDir =  join(process.cwd(), 'public', 'modpacks', id);
+    await clearDir(modpackDir)
     return this.modpackService.remove(id);
   }
 
   @UseGuards(ApikeyGuard)
-  @Post(':id/upload')
+  @Delete(':id/upload/files')
+  async clearDir(
+    @Param('id') id: string) {
+    const modpackDir =  join(process.cwd(), 'public', 'modpacks', id);
+    await clearDir(modpackDir)
+  }
+
+  @UseGuards(ApikeyGuard)
+  @Post(':id/upload/files')
   @UseInterceptors(FileInterceptor('file', uploadZipToStorage))
   async uploadImage(
     @Param('id') id: string,
