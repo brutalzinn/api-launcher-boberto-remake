@@ -23,7 +23,7 @@ export class ManifestService {
             name: fileName,
             path: relativePath,
             size: stats.size,
-            sha1: checksum,
+            hash: checksum,
             url,
             environment,
             type: fileType,
