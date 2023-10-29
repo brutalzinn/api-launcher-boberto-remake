@@ -17,6 +17,6 @@ import { ModpackService } from "./modules/modpack/modpack.service";
       rootPath: join(__dirname, '..', 'public'),
     }),],
   controllers: [],
-  providers: [PrismaService, ManifestService, ZipService, ServerDBService, ModpackDatabaseService, ModpackService, ModpackDatabaseService],
+  providers: [],
 })
 export class AppModule {}
