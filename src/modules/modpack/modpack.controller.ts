@@ -1,30 +1,30 @@
 import { Controller, Post, Body, Get, Param, Patch, Delete, UseInterceptors, UploadedFile, Request, HttpException, HttpStatus, Req, HostParam, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { join } from 'path';
-import { removeFile, moveFileTo, uploadZipToStorage, createDir, clearDir } from 'src/helpers/upload.helper';
+import { removeFile, uploadZipToStorage, createDir, clearDir } from 'src/helpers/upload.helper';
 import { CreateModpackDto } from './dto/create-modpack.dto';
 import { UpdateModpackDto } from './dto/update-modpack.dto';
-import { ModpackService } from './modpack.service';
+import { ModpackDBService } from './modpack.service';
 import { ZipService } from 'src/services/zip/zip.service';
 import { CurrentUrl } from 'src/decorators/url.decorator';
 import { ManifestService } from 'src/services/manifest/manifest.service';
 import { MinecraftEnvironment } from 'src/services/manifest/models/manifest.model';
 import { Modpack } from './entities/modpack.entity';
-import { IMedatada, convertToMetadata } from 'src/helpers/metadata.helper';
+import {convertToMetadata } from 'src/helpers/metadata.helper';
 import { ApikeyGuard } from 'src/guards/apikey/apikey.guard';
 
 @Controller('modpack')
 export class ModpackController {
-  constructor(private readonly modpackService: ModpackService, private zipService : ZipService, private manifestService : ManifestService) {}
+  constructor(private readonly modpackDBService: ModpackDBService, private zipService : ZipService, private manifestService : ManifestService) {}
   @UseGuards(ApikeyGuard)
   @Post()
   async create(@Body() createModpackDto: CreateModpackDto) {
-    return await this.modpackService.create(createModpackDto);
+    return await this.modpackDBService.create(createModpackDto);
   }
 
   @Get()
   async findAll(@CurrentUrl() url: string) {
-    const modpacks =  await this.modpackService.findAll();
+    const modpacks =  await this.modpackDBService.findAll();
     ///TODO: do this in a more clear way.
     const modpacksDto = modpacks.map(function(item) {
     let servers = []
@@ -48,7 +48,7 @@ export class ModpackController {
       metadata: convertToMetadata([
         {key: "modpack.manifest", value:  `${url}/modpacks/${item.id}/manifest.json`},
         ...item.metadatas,
-      //  ...servers
+        ...servers
       ],
       )
     })
@@ -61,13 +61,13 @@ export class ModpackController {
   @UseGuards(ApikeyGuard)
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return await this.modpackService.findOne(id);
+    return await this.modpackDBService.findOne(id);
   }
 
   @UseGuards(ApikeyGuard)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateModpackDto: UpdateModpackDto) {
-    return await this.modpackService.update(id, updateModpackDto);
+    return await this.modpackDBService.update(id, updateModpackDto);
   }
 
   @UseGuards(ApikeyGuard)
@@ -75,7 +75,7 @@ export class ModpackController {
   async remove(@Param('id') id: string) {
     const modpackDir =  join(process.cwd(), 'public', 'modpacks', id);
     await clearDir(modpackDir)
-    return this.modpackService.remove(id);
+    return await this.modpackDBService.remove(id);
   }
 
   @UseGuards(ApikeyGuard)

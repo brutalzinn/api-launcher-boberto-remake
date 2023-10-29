@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, ParseFilePipeBuilder, UploadedFile, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
-import { LauncherService } from './launcher.service';
+import { LauncherDBService } from './launcher.service';
 import { CreateLauncherDto } from './dto/create-launcher.dto';
 import { UpdateLauncherDto } from './dto/update-launcher.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -11,7 +11,7 @@ import { ApikeyGuard } from 'src/guards/apikey/apikey.guard';
 @Controller('launcher')
 @UseGuards(ApikeyGuard)
 export class LauncherController {
-  constructor(private readonly launcherService: LauncherService) {}
+  constructor(private readonly launcherService: LauncherDBService) {}
 
   @Post(':version/upload')
   @UseInterceptors(FileInterceptor('file', uploadLauncherToStorage))

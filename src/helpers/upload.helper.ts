@@ -16,14 +16,17 @@ export const uploadZipToStorage = {
   storage: diskStorage({
     destination: "./public",
     filename: (req, file, cb) => {
-      // const fileExtension: string = path.extname(file.originalname);
-      // const fileName: string = file.filename + fileExtension;//
       cb(null, file.originalname);
     },
   }),
   fileFilter: (req, file, cb) => {
     const allowedMimeTypes: validMimeType[] = validMimeTypes;
-    allowedMimeTypes.includes(file.mimetype) ? cb(null, true) : cb(null, false);
+    const includeMime =  allowedMimeTypes.includes(file.mimetype)
+    if (includeMime){
+      cb(null, true)
+      return
+    }
+     cb(null, false);
   },
 };
 

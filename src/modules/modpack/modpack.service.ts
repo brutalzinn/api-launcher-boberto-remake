@@ -2,18 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { CreateModpackDto } from './dto/create-modpack.dto';
 import { UpdateModpackDto } from './dto/update-modpack.dto';
 import { PrismaService } from 'src/services/prisma/prisma.service';
-import { ModPack } from '@prisma/client';
 
 @Injectable()
-export class ModpackService {
+export class ModpackDBService {
   constructor(private prisma: PrismaService) {}
-
-//   export class CreateModpackModdedDto {
-//     loader: string
-//     forgeVersion: string
-//     fabricVersion: string
-// }
-
 
   async create(createModpackDto: CreateModpackDto) : Promise<boolean> {
     await this.prisma.modPack.create({
@@ -171,6 +163,23 @@ export class ModpackService {
       }
     })
 
+    let modpackIcon = this.prisma.modpackMetadata.upsert({
+      where: {
+        modpack_id_key: {
+          key: "modpack.icon",
+          modpackId: id
+        },
+      },
+      update: {
+        value: updateModpackDto?.icon
+      },
+      create: {
+        key: "modpack.icon",
+        value: updateModpackDto?.icon ?? "",
+        modpackId: id
+      }
+    })
+
     let modpackIsDefault = this.prisma.modpackMetadata.upsert({
       where: {
         modpack_id_key: {
@@ -190,6 +199,7 @@ export class ModpackService {
 
     await this.prisma.$transaction([
       modpackLoaderMetadata,
+      modpackIcon,
       modpackLoaderType,
       modpackLoaderEnabled,
       modpackLoaderVerify,

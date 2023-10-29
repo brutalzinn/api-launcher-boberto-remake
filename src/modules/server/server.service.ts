@@ -4,7 +4,7 @@ import { UpdateServerDto } from './dto/update-server.dto';
 import { PrismaService } from 'src/services/prisma/prisma.service';
 
 @Injectable()
-export class ServerService {
+export class ServerDBService {
 
   constructor(private prisma: PrismaService) {}
 

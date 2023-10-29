@@ -44,10 +44,3 @@ model Server {
   updateAt    DateTime @updatedAt
   modpack     ModPack  @relation(fields: [modpackId], references: [id])
 }
-
-model LauncherVersion {
-  id       Int      @id @default(autoincrement())
-  version  String
-  createAt DateTime @default(now())
-  updateAt DateTime @updatedAt
-}

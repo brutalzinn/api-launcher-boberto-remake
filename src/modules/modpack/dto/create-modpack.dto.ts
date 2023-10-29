@@ -3,6 +3,7 @@ export class CreateModpackDto {
     gameVersion: string
     manifestUrl?: string
     thumb?: string
+    icon?: string
     verify: boolean
     isDefault: boolean
     loader?: CreateModpackModdedDto
