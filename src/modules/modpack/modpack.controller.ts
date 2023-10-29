@@ -1,21 +1,22 @@
-import { Controller, Post, Body, Get, Param, Patch, Delete, UseInterceptors, UploadedFile, Request, HttpException, HttpStatus, Req, HostParam, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, Delete, UseInterceptors, UploadedFile, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { join } from 'path';
-import { removeFile, uploadZipToStorage, createDir, clearDir } from 'src/helpers/upload.helper';
+import { uploadZipToStorage, createDir, clearDir } from 'src/helpers/upload.helper';
 import { CreateModpackDto } from './dto/create-modpack.dto';
 import { UpdateModpackDto } from './dto/update-modpack.dto';
-import { ModpackDBService } from './modpack.service';
 import { ZipService } from 'src/services/zip/zip.service';
 import { CurrentUrl } from 'src/decorators/url.decorator';
 import { ManifestService } from 'src/services/manifest/manifest.service';
-import { MinecraftEnvironment } from 'src/services/manifest/models/manifest.model';
 import { Modpack } from './entities/modpack.entity';
 import {convertToMetadata } from 'src/helpers/metadata.helper';
 import { ApikeyGuard } from 'src/guards/apikey/apikey.guard';
+import { GenerateModPackFilesModel } from './models/generate-modpack-files-model';
+import { ModpackDatabaseService } from 'src/services/modpack-database/modpack-database.service';
+import { ModpackService } from './modpack.service';
 
 @Controller('modpack')
 export class ModpackController {
-  constructor(private readonly modpackDBService: ModpackDBService, private zipService : ZipService, private manifestService : ManifestService) {}
+  constructor(private readonly modpackDBService: ModpackDatabaseService, private modpackService: ModpackService,  private zipService : ZipService, private manifestService : ManifestService) {}
   @UseGuards(ApikeyGuard)
   @Post()
   async create(@Body() createModpackDto: CreateModpackDto) {
@@ -27,20 +28,19 @@ export class ModpackController {
     const modpacks =  await this.modpackDBService.findAll();
     ///TODO: do this in a more clear way.
     const modpacksDto = modpacks.map(function(item) {
-    let servers = []
-    for (var i = 0; i < item.servers.length; i++){
-      const id = item.servers[i].id
-      const ipAddress = item.servers[i].ip
-      const port = item.servers[i].port
-      const name = item.servers[i].name
-      const alias = item.servers[i].alias
-      servers.push({key: "server." + i + ".ip", value: ipAddress })
-      servers.push({key: "server." + i + ".port", value: port })
-      servers.push({key: "server." + i + ".alias", value: alias })
-      servers.push({key: "server." + i + ".name", value: name })
-      servers.push({key: "server." + i + ".id", value: id })
-
-    }
+    // let servers = []
+    // for (var i = 0; i < item.servers.length; i++){
+    //   const id = item.servers[i].id
+    //   const ipAddress = item.servers[i].ip
+    //   const port = item.servers[i].port
+    //   const name = item.servers[i].name
+    //   const alias = item.servers[i].alias
+    //   servers.push({key: "server." + i + ".ip", value: ipAddress })
+    //   servers.push({key: "server." + i + ".port", value: port })
+    //   servers.push({key: "server." + i + ".alias", value: alias })
+    //   servers.push({key: "server." + i + ".name", value: name })
+    //   servers.push({key: "server." + i + ".id", value: id })
+    // }
     let modpack = new Modpack({
       id: item.id,
       gameVersion: item.gameVersion,
@@ -48,7 +48,7 @@ export class ModpackController {
       metadata: convertToMetadata([
         {key: "modpack.manifest", value:  `${url}/modpacks/${item.id}/manifest.json`},
         ...item.metadatas,
-        ...servers
+      //  ...servers
       ],
       )
     })
@@ -100,11 +100,13 @@ export class ModpackController {
     const originalZipPath = join(process.cwd(), file.path);
     const outputZipPath =  join(process.cwd(), 'public', 'modpacks', id);
     await createDir(outputZipPath)
-    await this.zipService.unzip(originalZipPath, outputZipPath)
     const modpackUrl = `${url}/modpacks/${id}`
-    await this.manifestService.createManifest(outputZipPath, outputZipPath, MinecraftEnvironment.CLIENT, modpackUrl)
-    await removeFile(originalZipPath)
+    const uploadModel : GenerateModPackFilesModel = {
+      outputZipPath: outputZipPath,
+      zipPath: originalZipPath,
+      modpackUrl: modpackUrl
+    }
+    this.modpackService.generateModPackFiles(uploadModel)
   }
-
 
 }

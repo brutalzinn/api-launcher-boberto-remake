@@ -9,6 +9,8 @@ import { PrismaService } from "./services/prisma/prisma.service";
 import { ZipService } from "./services/zip/zip.service";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import { join } from 'path';
+import { ModpackDbService } from './services/modpack-db/modpack-db.service';
+import { ModpackDatabaseService } from './services/modpack-database/modpack-database.service';
 
 @Module({
   imports: [ModpackModule, LauncherModule, ServerModule, 
@@ -16,6 +18,6 @@ import { join } from 'path';
       rootPath: join(__dirname, '..', 'public'),
     }),],
   controllers: [],
-  providers: [PrismaService, ManifestService, ZipService, ServerDBService, ModpackDBService],
+  providers: [PrismaService, ManifestService, ZipService, ServerDBService, ModpackDBService, ModpackDbService, ModpackDatabaseService],
 })
 export class AppModule {}
