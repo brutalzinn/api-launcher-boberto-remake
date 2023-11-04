@@ -5,6 +5,7 @@ import { MinecraftEnvironment } from 'src/services/manifest/models/manifest.mode
 import { ModpackDatabaseService } from 'src/services/modpack-database/modpack-database.service';
 import { ZipService } from 'src/services/zip/zip.service';
 import { GenerateModPackFilesModel } from './models/generate-modpack-files-model';
+import { CreateManifestModel } from 'src/services/manifest/models/create-manifest.model';
 
 @Injectable()
 export class ModpackService {
@@ -16,7 +17,13 @@ export class ModpackService {
 
     async generateModPackFiles(uploadFiles: GenerateModPackFilesModel)  {
         await this.zipService.unzip(uploadFiles.zipPath, uploadFiles.outputZipPath)
-        await this.manifestService.createManifest(uploadFiles.outputZipPath, uploadFiles.outputZipPath, MinecraftEnvironment.CLIENT, uploadFiles.modpackUrl)
+        let createManifest : CreateManifestModel =  {
+          inputDirectory: uploadFiles.outputZipPath, 
+          outputDirectory: uploadFiles.outputZipPath,
+          environment:  MinecraftEnvironment.CLIENT,
+          hostUrl: uploadFiles.modpackUrl
+        }
+        await this.manifestService.createManifest(createManifest)
         await removeFile(uploadFiles.zipPath)
       }
  }

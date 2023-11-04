@@ -1,61 +1,46 @@
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
-import * as crypto from 'crypto';
 import * as path from 'path';
-import { MinecraftEnvironment, MinecraftFileType } from './models/manifest.model';
+import { MinecraftFileType } from './models/manifest.model';
+import { CreateManifestModel } from './models/create-manifest.model';
+import { FileUtils } from 'src/utils/file-utils';
 
 @Injectable()
 export class ManifestService {
-    async createManifest(inputDir: string, outputDirectory: string, environment : MinecraftEnvironment, hostUrl: string): Promise<void> {
+    private static manifestFileName : string = "manifest.json"
+    async createManifest(createManifest: CreateManifestModel): Promise<void> {
         const manifest = [];
-        const files = this.getAllFilesInFolder(inputDir, ["manifest.json"])
+        const environment = createManifest.environment
+        const manifestFileOutputPath = path.join(createManifest.outputDirectory, ManifestService.manifestFileName);
+        if(FileUtils.fileExists(manifestFileOutputPath)){
+          fs.unlinkSync(manifestFileOutputPath)
+        }
+        const files = FileUtils.getAllFilesInFolder(createManifest.inputDirectory)
         for (const filePath of files) {
-          const relativePath = path.relative(outputDirectory, filePath).replaceAll(path.sep, '/');
+          const relativePath = path.relative(createManifest.outputDirectory, filePath).replaceAll(path.sep, '/');
           const fileName = path.basename(filePath)
-          const stats = fs.statSync(filePath);
-          if (stats.isDirectory()) {
+          const fileStat = fs.statSync(filePath);
+          if (fileStat.isDirectory()) {
             continue
           }
-          const checksum = await this.generateSHA1ChecksumForFile(filePath);
-          const url = `${hostUrl}/${relativePath}`; // Update with your file storage path
-          const fileType = this.getFileType(relativePath);
+          const checksum = await FileUtils.generateSHA1ChecksumForFile(filePath);
+          const url = `${createManifest.hostUrl}/${relativePath}`;
+          const fileType = ManifestService.getFileType(relativePath);
           const manifestEntry = {
             name: fileName,
             path: relativePath,
-            size: stats.size,
+            size: fileStat.size,
             hash: checksum,
             url,
             environment,
             type: fileType,
           };
-    
           manifest.push(manifestEntry);
         }
-    
-        const manifestFilePath = path.join(outputDirectory, 'manifest.json');
-        fs.writeFileSync(manifestFilePath, JSON.stringify(manifest, null, 2));
+        fs.writeFileSync(manifestFileOutputPath, JSON.stringify(manifest, null, 2));
       }
-    
-      async  generateSHA1ChecksumForFile(filePath: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-          const sha1 = crypto.createHash('sha1');
-          const stream = fs.createReadStream(filePath);
-      
-          stream.on('data', (data) => {
-            sha1.update(data);
-          });
-      
-          stream.on('end', () => {
-            resolve(sha1.digest('hex'));
-          });
-      
-          stream.on('error', (error) => {
-            reject(error);
-          });
-        });
-      }
-    
-      private getFileType(filePath: string): MinecraftFileType {
+
+    public static getFileType(filePath: string): MinecraftFileType {
        const fileType: string = filePath.split("/")[0];
         switch(fileType){
             case "libraries": 
@@ -66,29 +51,6 @@ export class ManifestService {
                 return MinecraftFileType.VERSIONCUSTOM;
             default: 
                 return MinecraftFileType.FILE;
-
         }
-      }
-
-      getAllFilesInFolder(folderPath: string, toIgnore: string[]): string[] {
-        const files: string[] = [];
-        function traverseDirectory(currentPath: string): void {
-          const items = fs.readdirSync(currentPath);
-          items.forEach((item) => {
-            if(toIgnore.includes(item)){
-              return
-            }
-            const itemPath = path.join(currentPath, item);
-            const stat = fs.statSync(itemPath);
-            if (stat.isDirectory()) {
-              traverseDirectory(itemPath);
-            } else {
-              files.push(itemPath);
-            }
-          });
-        }
-      
-        traverseDirectory(folderPath);
-        return files;
       }
 }

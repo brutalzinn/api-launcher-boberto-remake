@@ -26,21 +26,7 @@ export class ModpackController {
   @Get()
   async findAll(@CurrentUrl() url: string) {
     const modpacks =  await this.modpackDBService.findAll();
-    ///TODO: do this in a more clear way.
     const modpacksDto = modpacks.map(function(item) {
-    // let servers = []
-    // for (var i = 0; i < item.servers.length; i++){
-    //   const id = item.servers[i].id
-    //   const ipAddress = item.servers[i].ip
-    //   const port = item.servers[i].port
-    //   const name = item.servers[i].name
-    //   const alias = item.servers[i].alias
-    //   servers.push({key: "server." + i + ".ip", value: ipAddress })
-    //   servers.push({key: "server." + i + ".port", value: port })
-    //   servers.push({key: "server." + i + ".alias", value: alias })
-    //   servers.push({key: "server." + i + ".name", value: name })
-    //   servers.push({key: "server." + i + ".id", value: id })
-    // }
     let modpack = new Modpack({
       id: item.id,
       gameVersion: item.gameVersion,
@@ -48,14 +34,12 @@ export class ModpackController {
       metadata: convertToMetadata([
         {key: "modpack.manifest", value:  `${url}/modpacks/${item.id}/manifest.json`},
         ...item.metadatas,
-      //  ...servers
       ],
       )
     })
     return modpack
 
   })
-
     return modpacksDto
   }
   @UseGuards(ApikeyGuard)
@@ -79,7 +63,7 @@ export class ModpackController {
   }
 
   @UseGuards(ApikeyGuard)
-  @Delete(':id/upload/files')
+  @Delete(':id/upload')
   async clearDir(
     @Param('id') id: string) {
     const modpackDir =  join(process.cwd(), 'public', 'modpacks', id);
@@ -87,9 +71,9 @@ export class ModpackController {
   }
 
   @UseGuards(ApikeyGuard)
-  @Post(':id/upload/files')
+  @Post(':id/upload')
   @UseInterceptors(FileInterceptor('file', uploadZipToStorage))
-  async uploadImage(
+  async uploadZip(
     @Param('id') id: string,
     @CurrentUrl() url: string,
     @UploadedFile() file: Express.Multer.File) {
