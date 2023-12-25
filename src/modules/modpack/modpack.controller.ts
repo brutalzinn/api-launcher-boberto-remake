@@ -33,8 +33,12 @@ export class ModpackController {
             createMany: {
               data : [
                 {
+                  key : "modpack.icon",
+                  value: createModpackDto.icon
+                },
+                {
                   key : "modpack.thumb",
-                  value: ""
+                  value: createModpackDto.thumb
                 },
                 {
                   key : "modpack.loader.build",
@@ -128,6 +132,10 @@ export class ModpackController {
     this.prisma.add(updateModPack)
 
     let metadas : Array<Metadata> = [
+      {
+        key : "modpack.icon",
+        value: updateModpackDto?.icon ?? ""
+      },
       {
         key : "modpack.thumb",
         value: updateModpackDto?.thumb ?? "" 
