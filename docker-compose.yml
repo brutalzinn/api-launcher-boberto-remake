@@ -1,19 +1,19 @@
 version: "3"
 
 services: 
-  api:
-    build:
-      context: .
-    ports:
-      - "${PORT}:3000"
-    env_file:
-      - .env
-    networks:
-      - docker-service
-    depends_on: 
-      - mariadb
-    volumes:
-      - "./src:/app"
+  # api:
+  #   build:
+  #     context: .
+  #   ports:
+  #     - "${PORT}:3000"
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - docker-service
+  #   depends_on: 
+  #     - mariadb
+  #   volumes:
+  #     - "./src:/app"
 
   mariadb:
     image: mariadb:latest

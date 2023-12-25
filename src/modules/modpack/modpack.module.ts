@@ -3,14 +3,13 @@ import { ModpackController } from './modpack.controller';
 import { PrismaService } from 'src/services/prisma/prisma.service';
 import { ZipService } from 'src/services/zip/zip.service';
 import { ManifestService } from 'src/services/manifest/manifest.service';
-import { ModpackDatabaseService } from 'src/services/modpack-database/modpack-database.service';
 import { ModpackService } from './modpack.service';
-import { FileManagerService } from 'src/services/file-manager/file-manager.service';
-import { FileRemoteManagerService } from 'src/services/file-remote-manager/file-remote-manager.service';
+import { ModpackPrismaService } from './services/prisma/modpack.prisma.service';
+import { ModpackMetadataPrismaService } from './services/prisma/modpack-metadata.prisma.service';
 
 @Module({
   controllers: [ModpackController],
-  providers: [ModpackDatabaseService, ModpackService, PrismaService, ManifestService, ZipService, FileManagerService],
+  providers: [ModpackPrismaService, ModpackMetadataPrismaService, ModpackService, ManifestService, ZipService, PrismaService],
   imports:[]
 })
 export class ModpackModule {}
