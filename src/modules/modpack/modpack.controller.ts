@@ -13,14 +13,15 @@ import { GenerateModPackFilesModel } from './models/generate-modpack-files-model
 import { ModpackService } from './modpack.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ModpackPrismaService } from './services/prisma/modpack.prisma.service';
-import { ModpackMetadataPrismaService } from './services/prisma/modpack-metadata.prisma.service';
 import { PrismaService } from 'src/services/prisma/prisma.service';
+import { ModpackClientMetadata } from '@prisma/client';
+import { ModpackClientMetadataPrismaService } from './services/prisma/modpack-metadata.prisma.service';
 
 @Controller('modpack')
 export class ModpackController {
   constructor(
     private prisma: PrismaService,
-    private modpackMetadataPrismaService: ModpackMetadataPrismaService,
+    private modpackClientMetadataPrismaService: ModpackClientMetadataPrismaService,
     private modpackPrismaService: ModpackPrismaService, private modpackService: ModpackService,  private zipService : ZipService, private manifestService : ManifestService) {}
   @UseGuards(ApikeyGuard)
   @Post()
@@ -77,6 +78,7 @@ export class ModpackController {
     const modpacksDto = modpacks.map(function(item) {
     let modpack = new Modpack({
       id: item.id,
+      externalId: item.externalId,
       gameVersion: item.gameVersion,
       name: item.name,
       metadata: convertToMetadata([
@@ -92,17 +94,17 @@ export class ModpackController {
   }
   @UseGuards(ApikeyGuard)
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') externalId: string) {
     return await this.modpackPrismaService.findBy({
       where: {
-        id
+        externalId
       }
     });
   }
 
   @UseGuards(ApikeyGuard)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateModpackDto: UpdateModpackDto) {
+  async update(@Param('id') externalId: string, @Body() updateModpackDto: UpdateModpackDto) {
     type Metadata = {
       key: string
       value: string
@@ -110,7 +112,7 @@ export class ModpackController {
 
     let modpackFound = await this.modpackPrismaService.findBy({
       where: {
-        id
+        externalId
       }
     })
 
@@ -121,7 +123,7 @@ export class ModpackController {
 
     let updateModPack = this.modpackPrismaService.update({
       where: {
-        id
+        externalId
       },
       data: {
           name: updateModpackDto.name,
@@ -164,11 +166,11 @@ export class ModpackController {
 
     for(let i =0; i< metadas.length; i++) {
         let metadata = metadas[i]
-        let updateMetadata = this.modpackMetadataPrismaService.upsert({
+        let updateMetadata = this.modpackClientMetadataPrismaService.upsert({
           where: {
             modpack_id_key: {
               key: metadata.key,
-              modpackId: id
+              modpackId: modpackFound.id
             },
           },
           update:{
@@ -179,7 +181,7 @@ export class ModpackController {
             value: metadata.value,
             modpack: {
               connect: {
-                id
+                id: modpackFound.id
               }
             }
           }
@@ -193,12 +195,12 @@ export class ModpackController {
 
   @UseGuards(ApikeyGuard)
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    const modpackDir =  join(process.cwd(), 'public', 'modpacks', id);
+  async remove(@Param('id') externalId: string) {
+    const modpackDir =  join(process.cwd(), 'public', 'modpacks', externalId);
     await clearDir(modpackDir)
     return await this.modpackPrismaService.delete({
       where: {
-        id
+        externalId
       }
     });
   }

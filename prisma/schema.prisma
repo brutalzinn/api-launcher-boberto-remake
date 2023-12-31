@@ -11,37 +11,70 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model ModPack {
-  id          String            @id @default(uuid())
-  name        String
-  gameVersion String
-  createAt    DateTime          @default(now())
-  updateAt    DateTime          @updatedAt
-  servers     Server[]
-  metadatas   ModpackMetadata[]
+model ModPackClient {
+  id            Int                     @id @default(autoincrement())
+  externalId              String      @unique   @default(uuid())
+  name          String
+  gameVersion   String
+  createAt      DateTime                @default(now())
+  updateAt      DateTime                @updatedAt
+  files         FileUpload[]
+  metadatas     ModpackClientMetadata[]
+  ModpackServer ModpackServer[]
 }
 
-model ModpackMetadata {
-  id        String   @id @default(uuid())
-  modpackId String
+model ModpackClientMetadata {
+  id              Int            @id @default(autoincrement())
+  modpackId Int
   key       String
   value     String
-  modpack   ModPack  @relation(fields: [modpackId], references: [id])
-  createAt  DateTime @default(now())
-  updateAt  DateTime @updatedAt
+  modpack   ModPackClient @relation(fields: [modpackId], references: [id])
+  createAt  DateTime      @default(now())
+  updateAt  DateTime      @updatedAt
 
   @@unique([modpackId, key], name: "modpack_id_key")
 }
 
-model Server {
-  id          String   @id @default(uuid())
+model ModpackServer {
+  id          Int                     @id @default(autoincrement())
+  externalId              String      @unique   @default(uuid())
   name        String
   ip          String
   port        Int
   gameVersion String
-  modpackId   String
+  modpackId   Int
   alias       String
-  createAt    DateTime @default(now())
-  updateAt    DateTime @updatedAt
-  modpack     ModPack  @relation(fields: [modpackId], references: [id])
+  files       FileUpload[]
+  metadatas   ModpackServerMetadata[]
+  createAt    DateTime                @default(now())
+  updateAt    DateTime                @updatedAt
+  client      ModPackClient           @relation(fields: [modpackId], references: [id])
+}
+
+model ModpackServerMetadata {
+  id              Int            @id @default(autoincrement())
+  modpackServerId Int
+  key             String
+  value           String
+  modpack         ModpackServer @relation(fields: [modpackServerId], references: [id])
+  createAt        DateTime      @default(now())
+  updateAt        DateTime      @updatedAt
+
+  @@unique([modpackServerId, key], name: "modpack_server_id_key")
+}
+
+model FileUpload {
+  id              Int            @id @default(autoincrement())
+  externalId              String      @unique   @default(uuid())
+  name            String
+  mime            String
+  extension       String
+  path String 
+  size Int
+  checksum String
+  provider        String
+  ModPackClient   ModPackClient? @relation(fields: [modPackClientId], references: [id])
+  modPackClientId Int?
+  ModpackServer   ModpackServer? @relation(fields: [modpackServerId], references: [id])
+  modpackServerId Int?
 }

@@ -1,39 +1,39 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../services/prisma/prisma.service';
-import { ModPack, Prisma, PrismaPromise } from '@prisma/client';
+import { ModPackClient, Prisma, PrismaPromise } from '@prisma/client';
 
 @Injectable()
 export class ModpackPrismaService {
   
     constructor(private prisma: PrismaService){}
 
-     findBy<S extends Prisma.ModPackInclude>(params: { where: Prisma.ModPackWhereInput, include?: Prisma.Subset<S,Prisma.ModPackInclude>}) : PrismaPromise<ModPack | undefined> {
+     findBy<S extends Prisma.ModPackClientInclude>(params: { where: Prisma.ModPackClientWhereInput, include?: Prisma.Subset<S,Prisma.ModPackClientInclude>}) : PrismaPromise<ModPackClient | undefined> {
         const { where, include } = params;
-        return this.prisma.modPack.findFirst({
+        return this.prisma.modPackClient.findFirst({
             where: where,
             include: include
         });
       }
       
        update(params: {
-        where: Prisma.ModPackWhereUniqueInput;
-        data: Prisma.ModPackUpdateInput;
+        where: Prisma.ModPackClientWhereUniqueInput;
+        data: Prisma.ModPackClientUpdateInput;
       }){
         const { where, data } = params;
-        return this.prisma.modPack.update({
+        return this.prisma.modPackClient.update({
           data,
           where,
         });
       }
       
-       upsert<S extends Prisma.ModPackInclude>(params: {
-        create: Prisma.ModPackCreateInput
-        where: Prisma.ModPackWhereUniqueInput
-        update: Prisma.ModPackUpdateInput,
-        include?: Prisma.Subset<S, Prisma.ModPackInclude>
+       upsert<S extends Prisma.ModPackClientInclude>(params: {
+        create: Prisma.ModPackClientCreateInput
+        where: Prisma.ModPackClientWhereUniqueInput
+        update: Prisma.ModPackClientUpdateInput,
+        include?: Prisma.Subset<S, Prisma.ModPackClientInclude>
       }){
         const { where, create, update, include } = params;
-        return this.prisma.modPack.upsert({
+        return this.prisma.modPackClient.upsert({
           create,
           update,
           where,
@@ -41,25 +41,25 @@ export class ModpackPrismaService {
         });
       }
 
-       create(params: {data: Prisma.ModPackCreateInput}) : PrismaPromise<ModPack | undefined> {
+       create(params: {data: Prisma.ModPackClientCreateInput}) : PrismaPromise<ModPackClient | undefined> {
         const { data } = params;
-        return this.prisma.modPack.create({
+        return this.prisma.modPackClient.create({
           data:data
         });
       }
       
-       list<S extends Prisma.ModPackInclude>(params?: {where?: Prisma.ModPackWhereInput, include?: Prisma.Subset<S, Prisma.ModPackInclude>}) 
+       list<S extends Prisma.ModPackClientInclude>(params?: {where?: Prisma.ModPackClientWhereInput, include?: Prisma.Subset<S, Prisma.ModPackClientInclude>}) 
       {
         const { where, include } = params;
-        return this.prisma.modPack.findMany({
+        return this.prisma.modPackClient.findMany({
           where: where,
           include: include
       });
       }  
     
-         delete(params: {where: Prisma.ModPackWhereUniqueInput}): PrismaPromise<ModPack> {
+         delete(params: {where: Prisma.ModPackClientWhereUniqueInput}): PrismaPromise<ModPackClient> {
         const { where } = params;
-        return this.prisma.modPack.delete({
+        return this.prisma.modPackClient.delete({
           where: where
         })
       }
